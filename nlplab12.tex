@@ -1,0 +1,217 @@
+\documentclass[12pt,c]{beamer}
+\usetheme[noflama]{nlplab}
+
+\let\oldframe\frame
+\renewcommand\frame[1][plain]{\oldframe[#1]}
+
+
+\usepackage{listings}
+\usepackage{tabu}
+%======================================================================
+% 中文字體 
+%======================================================================
+\usepackage{xeCJK}
+\setCJKmainfont[AutoFakeBold=5,AutoFakeSlant=.4]{SimHei}
+\setCJKsansfont{SimHei} \setCJKmonofont{SimSun}
+
+
+%======================================================================
+% 檔案資訊
+%======================================================================
+\title{Unit 12}
+\subtitle{語言搜尋引擎}
+% \institute{NLP Lab}
+% \author{}
+% \date{}
+
+%----------------------------------------------------------------------
+% 圖形路徑
+%----------------------------------------------------------------------
+\graphicspath{ {./images/} }
+
+
+\lstset{basicstyle=\ttfamily\color{treelabWarmGreyDark}}
+%======================================================================
+% 檔案開始
+%======================================================================
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{目標}
+  \begin{itemize}
+  \item 建立一搜尋引擎用於搜尋英文詞語用法。
+  \item 可輔助英語學習與文章寫作。
+  \end{itemize}
+
+  \begin{block}{搜尋例子}
+    \begin{itemize}
+    \item \lstinline|adj. beach|: 即代表搜尋 beach 前面出現過的形容詞。
+    \item \lstinline|play * role|: 搜尋 play 與 role 中間最常出現的字詞組合。
+    \item \lstinline|go ?to home|: go 與 home 之間是否要放 to。
+    \item \lstinline|go * movie|: go 與 role 中間最常出現的字詞組合。 
+    \item \lstinline|kill the _|: 最常被 kill 的東西是。
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[t,plain]{用 Google 查英文}
+  \includeimage{google-search-beach}
+\end{frame}
+
+\begin{frame}[t,plain]{用 Google 查英文}
+  \includeimage{google-search-play-role}
+\end{frame}
+
+
+\begin{frame}[plain,shrink=5]{語法設計}
+  \begin{tabu}{X[1.2]X[2]}
+    \hline
+    \rowfont{\bf} 語法 & 說明  \\
+    \hline
+    \lstinline/_/ & 單一任意字詞 \\
+    \lstinline/*/ & 零到多個任意字詞  \\
+    \lstinline/?term/ & term 可有可無 \\
+    \lstinline!term1 | term2! & term1 或 term2 \\
+    \lstinline/adj. det. n. v. prep./ & 形容詞、冠詞、名詞、動詞、介繫詞 \\
+    \hline
+  \end{tabu}
+
+  \begin{block}{搜尋例子}
+    \begin{itemize}
+    \item \lstinline/adj. beach/: 即代表搜尋 beach 前面出現過的形容詞。
+    \item \lstinline/play * role/: 搜尋 play 與 role 中間最常出現的字詞組合。
+    \item \lstinline/go ?to home/: go 與 home 之間是否要放 to。
+    \item \lstinline/go * movie/: go 與 role 中間最常出現的字詞組合。 
+    \item \lstinline/kill the _/: 最常被 kill 的東西是。
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Lab 12}
+  \begin{itemize}
+  \item 目標：完成語法第一項 \lstinline/_/
+    \begin{itemize}
+    \item 任意位置置入 \lstinline/_/
+    \item 最長 4-gram
+    \end{itemize}
+    \begin{block}{Query 範例}
+      \begin{itemize}
+      \item \lstinline/play _ _ role/
+      \item \lstinline/kill the _/
+      \item \lstinline/a _ beach/
+      \end{itemize}
+    \end{block}
+  \item 輸入資料：citeseerx 的許多句子
+  \item 輸出結果：
+    \begin{itemize}
+    \item key: 所有會有結果的 query
+    \item value: 符合 query 的前 100 名 ngram 與 count。
+    \end{itemize}
+  \end{itemize}
+%   \begin{block}{輸出範例}
+%     \begin{tabu}{XXX}
+%       \hline 
+%       Key & Ngrams & Counts \\
+%       \hline
+%       a \_ beach & a sandy beach & 486 \\
+%       & a private beach  & 416  \\
+%       & a beautiful beach & 314  \\
+%       & a small beach  & 175 \\
+%       & ... \\
+%       \hline
+%     \end{tabu}
+% \end{block}
+
+\end{frame}
+\begin{frame}[plain,shrink=5]{Lab 12 - 輸出}
+  \begin{itemize}
+  \item key: 所有會有結果的 query
+  \item value: 符合 query 的前 100 名 ngram 與 count。
+  \end{itemize}
+
+  \begin{block}{輸出範例}
+    \begin{tabu} to .95\textwidth {XX[2]X[1,r]}
+      \hline 
+      \rowfont{\bf}Key & Ngrams & Counts \\
+      \hline
+      \lstinline/a \_ beach/
+      & a sandy beach & 486 \\
+      & a private beach  & 416  \\
+      & a beautiful beach & 314  \\
+      & a small beach  & 175 \\
+      & ... \\
+      \tabucline[on 2pt]{-}
+
+      \lstinline/kill the \_/
+      & kill the people & 189 \\
+      & kill the other & 174 \\
+      & kill the process & 163 \\
+      & kill the enemy & 160 \\
+      & ... \\
+      \hline
+    \end{tabu}
+  \end{block}
+\end{frame}
+
+\begin{frame}{隨堂測驗}
+目標
+  \begin{itemize}
+  \item 依 MapReduce 架構，設計每階段 mapper, reduce 的輸入輸出來完成 Lab 12
+  \item 在紙寫撰寫簡單輸入、輸出的 key-value 範例表達概念即可
+  \end{itemize}
+小提示
+  \begin{itemize}
+  \item 可有 1 至多個 map, reduce 流程
+  \item 考慮 mapper 的輸入資料切割影響
+  \item reducer 階段的 values 皆 grouped by key
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[plain,shrink]{Bi-gram Count}
+  \begin{block}{Bi-gram Count Mapper範例}
+    \begin{tabu} to .95\textwidth {XX}
+      \hline
+      Input & Output(\lstinline/key => value/) \\
+      \hline
+      C C C D
+      & C C => 2 \\
+      & C D => 1 \\
+      \tabucline[on 2pt]{-}
+      B C D A 
+      & B C => 1 \\
+      & C D => 1 \\
+      & D A => 1 \\
+      \tabucline[on 2pt]{-}
+      C D A B
+      & C D => 1 \\
+      & D A => 1 \\
+      & A B => 1 \\
+      \hline
+    \end{tabu}
+  \end{block}
+  \begin{block}{Reducer 範例}
+    \begin{tabu} to .95\textwidth {XX}
+      \hline
+      Input(\lstinline/key => value/) & Output(\lstinline/key => value/) \\
+      \hline
+      A B => 1 & A B => 1 \\
+      \tabucline[on 2pt]{-}
+      B C => 1 & B C => 1 \\
+      \tabucline[on 2pt]{-} 
+      C C => 2 & C C => 2 \\
+      \tabucline[on 2pt]{-} 
+      C D => 1 & C D => 3 \\
+      C D => 1 & \\
+      C D => 1 & \\
+      \tabucline[on 2pt]{-} 
+      D A => 1 & D A => 2 \\
+      D A => 1 &  \\
+      \hline
+    \end{tabu}
+  \end{block}  
+\end{frame}
+
+\end{document}
