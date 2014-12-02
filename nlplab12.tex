@@ -166,7 +166,8 @@
   \begin{itemize}
   \item 可有 1 至多個 map, reduce 流程
   \item 考慮 mapper 的輸入資料切割影響
-  \item reducer 階段的 values 皆 grouped by key
+  \item mapper 輸入為 value 或 key-value，輸出為 key-value
+  \item reducer 輸入為 grouped key-values，輸出為 key-value
   \end{itemize}
 \end{frame}
 
@@ -174,11 +175,11 @@
   \begin{block}{Bi-gram Count Mapper範例}
     \begin{tabu} to .95\textwidth {XX}
       \hline
-      Input & Output(\lstinline/key => value/) \\
+      Input(\lstinline/value/) & Output(\lstinline/key => value/) \\
       \hline
-      C C C D
-      & C C => 2 \\
-      & C D => 1 \\
+      C D C D
+      & C D => 2 \\
+      & D C => 1 \\
       \tabucline[on 2pt]{-}
       B C D A 
       & B C => 1 \\
@@ -200,15 +201,15 @@
       A B => 1 & A B => 1 \\
       \tabucline[on 2pt]{-}
       B C => 1 & B C => 1 \\
-      \tabucline[on 2pt]{-} 
-      C C => 2 & C C => 2 \\
-      \tabucline[on 2pt]{-} 
-      C D => 1 & C D => 3 \\
+      \tabucline[on 2pt]{-}
+      C D => 2 & C D => 4 \\
       C D => 1 & \\
       C D => 1 & \\
       \tabucline[on 2pt]{-} 
       D A => 1 & D A => 2 \\
       D A => 1 &  \\
+      \tabucline[on 2pt]{-} 
+      D C => 2 & C C => 2 \\
       \hline
     \end{tabu}
   \end{block}  
