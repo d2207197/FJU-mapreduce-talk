@@ -1,3 +1,4 @@
+
 \documentclass[12pt,c]{beamer}
 \usetheme[noflama]{nlplab}
 
@@ -6,6 +7,7 @@
 
 
 \usepackage{listings}
+\usepackage{minted}
 \usepackage{tabu}
 %======================================================================
 % 中文字體 
@@ -171,7 +173,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[plain,shrink]{Bi-gram Count}
+\begin{frame}[plain,shrink=40]{Bi-gram Count}
   \begin{block}{Bi-gram Count Mapper範例}
     \begin{tabu} to .95\textwidth {XX}
       \hline
@@ -215,4 +217,116 @@
   \end{block}  
 \end{frame}
 
+\begin{frame}[plain,shrink=10]{Lab12}
+  \begin{block}{Lab12 Mapper 範例}
+    \begin{tabu} to .95\textwidth {XX}
+      \hline
+      Input(\lstinline/value/) & Output(\lstinline/key => value/) \\
+      \hline
+      \lstinline/A B C 200/
+      & \lstinline/A B C => A B C 200/ \\
+      & \lstinline/\_ B C => A B C 200/ \\
+      & \lstinline/A \_ C => A B C 200/ \\
+      & \lstinline/A B \_ => A B C 200/ \\
+      & \lstinline/\_ \_ C => A B C 200/ \\
+      & \lstinline/\_ B \_ => A B C 200/ \\
+      & \lstinline/A \_ \_ => A B C 200/ \\
+      \tabucline[on 2pt]{-}
+      \lstinline/A D C 300/
+      & \lstinline/\_ D C => A D C 300/ \\
+      & \lstinline/A \_ C => A D C 300/ \\
+      & ... \\
+      \tabucline[on 2pt]{-}
+      \lstinline/A E C 100/
+      & \lstinline/\_ E C => A E C 100/ \\
+      & \lstinline/A \_ C => A E C 100/ \\
+      & ... \\
+      \hline
+    \end{tabu}
+  \end{block}
+\end{frame}
+
+\begin{frame}[plain,shrink=10]{Lab12}
+  \begin{block}{Lab12 Reducer 範例}
+    \begin{tabu} to .95\textwidth {X[1.5]X[0.5]X}
+      \hline
+      Input(\lstinline/value/) & Output(\lstinline/key => value/) \\
+      \hline
+      \lstinline/A \_ C => A B C 200/ & \lstinline/A \_ C =>/ & \lstinline/A D C 300,/\\
+      \lstinline/A \_ C => A D C 300/ & & \lstinline/A B C 200,/\\
+      \lstinline/A \_ C => A E C 100/ & & \lstinline/A E C 100/\\
+      \tabucline[on 2pt]{-}
+      \lstinline/A B \_ => A B C 200/ & \lstinline/A B \_ =>/ & \lstinline/A B C 200/ \\
+      \tabucline[on 2pt]{-}
+      \lstinline/A D \_ => A D C 300/ & \lstinline/A D \_ =>/ & \lstinline/A D C 300/ \\
+      \tabucline[on 2pt]{-}
+      \lstinline/A E \_ => A E C 100/ & \lstinline/A E \_ =>/ & \lstinline/A E C 100/ \\
+      \tabucline[on 2pt]{-}
+      \lstinline/A \_ \_ => A B C 200/ & \lstinline/A \_ \_ =>/ & \lstinline/A D C 300,/ \\
+      \lstinline/A \_ \_ => A D C 300/ & & \lstinline/A B C 200,/ \\
+      \lstinline/A \_ \_ => A E C 100/ & & \lstinline/A E C 100/ \\
+      \tabucline[on 2pt]{-}
+      \lstinline/\_ B C => A B C 200/ & \lstinline/\_ B C =>/ & \lstinline/A B C 200/ \\
+      \tabucline[on 2pt]{-}
+      \lstinline/\_ D C => A D C 300/ & \lstinline/\_ D C =>/ & \lstinline/A D C 300/ \\
+      \tabucline[on 2pt]{-}
+      \lstinline/\_ E C => A E C 100/ & \lstinline/\_ E C =>/ & \lstinline/A E C 100/\\
+      \tabucline[on 2pt]{-}
+      ... & ...\\
+      \hline
+    \end{tabu}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Lab12}
+
+需完成六支程式
+\begin{itemize}
+  \item 產生 ngram count 的 mapper, reducer
+  \item 產生 query result 的 mapper, reducer
+  \item 將 query result 轉為 database \\(試試 python 內建的 shelve 或 sqlite3 套件)
+  \item Database 介面程式，讓使用者輸入 query ，即時取得 result
+\end{itemize}  
+\end{frame}
+
+% \lstset{language=python}
+\begin{frame}[containsverbatim]{python shelve}
+\begin{minted}[mathescape,
+               linenos,
+               numbersep=5pt,
+               % gobble=2,
+               frame=lines,
+               framesep=2mm]{python}
+
+import shelve
+d = shelve.open('data.shelve')
+d['odds'] = [1, 3, 5, 7, 9]
+print d['odds']
+d['evens'] = [2, 4, 6, 8, 10]
+d['hello'] = 'world'
+del d['hello']
+d['zipcodes'] = {'hsinchu': 300, 'zhongli': 320}
+print d.keys()
+d.close()
+
+\end{minted}
+Google ``python shelve'' for official documents
+\end{frame}  
+
+
+\begin{frame}[allowframebreaks,t]{Ngram Count}
+\inputminted[mathescape,
+               linenos,
+               numbersep=5pt,
+               fontsize=\scriptsize,
+               frame=lines,
+               framesep=2mm]{python}{ngramcount.py}
+
+\end{frame}
+
 \end{document}
+
+%%% Local Variables:
+%%% TeX-engine: xetex
+%%% TeX-command-extra-options: "-shell-escape"
+%%% End:
