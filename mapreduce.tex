@@ -9,6 +9,7 @@
 \usepackage{listings}
 \usepackage{minted}
 \usepackage{tabu}
+
 %======================================================================
 % 中文字體 
 %======================================================================
@@ -20,8 +21,8 @@
 %======================================================================
 % 檔案資訊
 %======================================================================
-\title{Unit 12}
-\subtitle{語言搜尋引擎}
+\title{Map Reduce}
+% \subtitle{語言搜尋引擎}
 % \institute{NLP Lab}
 % \author{}
 % \date{}
@@ -41,6 +42,171 @@
 \begin{frame}
   \titlepage
 \end{frame}
+
+\begin{frame}{巨量資料}
+  \begin{itemize}
+    \item 20+ billion web pages x 20KB = 400+ TB
+    \item 單台電腦讀取硬碟速度 30-35 MB/sec。需 4 個月讀取整個 web
+    \item 200 * 2TB 硬碟來儲存
+    
+  \end{itemize}
+  \begin{itemize}
+  \item Facebook 有 10 billion 張照片
+  \item 需 petabytes 以上儲存空間
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{巨量資料}
+  \begin{itemize}
+    \item 分散式計算、分散式儲存 
+    \item 2011 年時 Google 有 1M 台機器
+      \item 
+  \end{itemize}
+    \includeimage{cluster-architecture}
+\end{frame}
+
+\begin{frame}{MapReduce}
+\begin{itemize}
+\item 挑戰
+\begin{itemize}
+\item 如何分散計算、分散資料？
+\item 撰寫分散式/平行程式很困難？
+\end{itemize}
+\item MapReduce 解決上述問題
+\begin{itemize}
+  \item Google 所設計的運算與資料處理模型
+  \item 簡單且優雅的運用在大資料處理，撰寫平行程式不再困難
+\end{itemize}
+\end{itemize}
+  
+
+
+\end{frame}
+
+\begin{frame}{MapReduce}
+  \includeimage{map-reduce}
+\end{frame}
+
+\begin{frame}[containsverbatim]{範例: Word Count}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm]{console}
+$ cat data | tr -sc 'A-Za-z' '\n'  | sort  | uniq -c
+...
+    645 and
+      2 animation
+      3 annotations
+      3 answers
+      1 anticipated
+     19 any
+      2 anymore
+      2 anything
+     39 apos
+...
+\end{minted}
+\end{frame}
+
+
+
+\begin{frame}[containsverbatim]{範例: Word Count}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm]{console}
+$ cat data 
+...
+On January 2, 1985, Zaman Akil sent the Academy of Sciences a short summary of a longer work.
+At his request, the Perpetual Secretary of the Academy, Prof. Paul Germain, sent the letter to several members of the Academy, including myself.
+I was the only one who agreed to discuss it with the author.
+...
+\end{minted}
+\end{frame}
+
+\begin{frame}{Map}
+  \includeimage{map}
+\end{frame}
+
+
+\begin{frame}[containsverbatim]{範例: Word Count}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm]{console}
+$ cat data | tr -sc 'A-Za-z' '\n' 
+...
+Germain
+sent
+the
+letter
+to
+several
+members
+of
+...
+\end{minted}
+\end{frame}
+
+\begin{frame}{MapReduce}
+  \includeimage{group}
+\end{frame}
+
+
+
+\begin{frame}[containsverbatim]{範例: Word Count}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm]{console}
+$ cat data | tr -sc 'A-Za-z' '\n' | sort
+...
+Also
+Also
+Also
+Although
+Although
+America
+American
+American
+Among
+An
+An
+...
+
+\end{minted}
+\end{frame}
+
+\begin{frame}{MapReduce}
+  \includeimage{reduce}
+\end{frame}
+
+
+\begin{frame}[containsverbatim]{範例: Word Count}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm]{console}
+$ cat data | tr -sc 'A-Za-z' '\n'  | sort  | uniq -c
+...
+    645 and
+      2 animation
+      3 annotations
+      3 answers
+      1 anticipated
+     19 any
+      2 anymore
+      2 anything
+     39 apos
+...
+\end{minted}
+\end{frame}
+
+
+
+\begin{frame}[containsverbatim]{WordCount Functions}
+\begin{minted}[mathescape,linenos,numbersep=3pt,frame=lines,framesep=2mm]{python}
+def map(key, value):
+    # key: NA; value: a line of input text
+    for word in value:
+        emit(word, 1)
+def reduce(key, values):
+    # key: word; values: an iterator over counts
+    result = 0
+    for count in values:
+        result += count
+    emit(key, result)
+\end{minted}
+\end{frame}
+
+% \begin{frame}{MapReduce}
+%   \includeimage{map-reduce-2}
+% \end{frame}
+
 
 \begin{frame}{目標}
   \begin{itemize}
