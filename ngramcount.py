@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals, print_function
 
 
 def ngrams(words):
@@ -7,60 +8,55 @@ def ngrams(words):
         for ngram in zip(*(words[i:] for i in range(length))):
             yield ngram
 
+def mapper(line):
+    # from nltk.tokenize import word_tokenize
+    # words = word_tokenize(line.lower())
+    import re
+    words = re.findall(r'[a-z]+', line.lower())
+    for ngram in ngrams(words):
+        yield ' '.join(ngram), 1
 
-def mapper(files):
+def reducer(key, values):
+    count = sum(int(v) for v in values)
+    yield key, count
+
+def do_mapper(files):
     import fileinput
-    from nltk.tokenize import word_tokenize
-    from collections import Counter
-    ngram_counter = Counter()
     for line in fileinput.input(files):
-        line = line.decode('iso-8859-1')
-        words = word_tokenize(line.lower())
-        ngram_counter.update(ngrams(words))
+        for key, value in mapper(line):
+            print('{}\t{}'.format(key, value))
 
-    for ngram, count in ngram_counter.iteritems():
-        print (u' '.join(ngram) + u'\t' + unicode(count)).encode('utf-8')
+def line_to_keyvalue(line):
+    key, value = line.decode('utf8').split('\t', 1)
+    return key, value
 
-
-def line_to_ngram(line):
-    line = line.decode('iso-8859-1')
-    return line.split(u'\t', 1)[0]
-
-
-def line_to_count(line):
-    line = line.decode('iso-8859-1')
-    return int(line.split(u'\t', 1)[1])
-
-
-def reducer(files):
+def do_reducer(files):
     import fileinput
     from itertools import groupby, imap
+    keyvalues = imap(line_to_keyvalue, fileinput.input(files))
+    for key, grouped_keyvalues in groupby(keyvalues,
+                                           key=lambda x: x[0]):
+        values = (v for k, v in grouped_keyvalues)
+        for key, value in reducer(key, values):
+            print('{}\t{}'.format(key, value))
 
-    for ngram, lines in groupby(fileinput.input(files), key=line_to_ngram):
-        count = sum(imap(line_to_count, lines))
-        print (ngram + u'\t' + unicode(count)).encode('utf-8')
-
-
-if __name__ == '__main__':
+            
+def argparser():
     import argparse
-    import sys
     parser = argparse.ArgumentParser(description='N-gram counter')
-    parser.add_argument(
+    mode_group = parser.add_mutually_exclusive_group(required = True)
+    mode_group.add_argument(
         '-r', '--reducer', action='store_true', help='reducer mode')
-    parser.add_argument(
+    mode_group.add_argument(
         '-m', '--mapper', action='store_true', help='mapper mode')
     parser.add_argument('files', metavar='FILE', type=str, nargs='*',
                         help='input files')
+    return parser.parse_args()
+    
+if __name__ == '__main__':
 
-    args = parser.parse_args()
-
-    if (args.mapper and args.reducer
-            or
-            not args.mapper and not args.reducer):
-        parser.print_help()
-        sys.exit(1)
-
+    args = argparser()
     if args.mapper:
-        mapper(args.files)
+        do_mapper(args.files)
     elif args.reducer:
-        reducer(args.files)
+        do_reducer(args.files)
