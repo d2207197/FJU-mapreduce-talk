@@ -27,3 +27,4 @@ _region_.*
 *.snm
 *.fls
 *.fdb_latexmk
+mapreduce.pdf
