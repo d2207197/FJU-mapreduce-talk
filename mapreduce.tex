@@ -23,6 +23,7 @@
 %======================================================================
 \title{Map Reduce}
 % \subtitle{語言搜尋引擎}
+\subtitle{https://goo.gl/dSsBqp}
 % \institute{NLP Lab}
 % \author{}
 % \date{}
@@ -44,24 +45,22 @@
 \end{frame}
 
 \begin{frame}{巨量資料}
+\begin{itemize}
+  \item Google 處理 Web
+
   \begin{itemize}
     \item 20+ billion web pages x 20KB = 400+ TB
     \item 單台電腦讀取硬碟速度 30-35 MB/sec。需 4 個月讀取整個 web
     \item 200 * 2TB 硬碟來儲存
-    
   \end{itemize}
-  \begin{itemize}
-  \item Facebook 有 10 billion 張照片
-  \item 需 petabytes 以上儲存空間
-  \end{itemize}
+\end{itemize}
 \end{frame}
 
 \begin{frame}{巨量資料}
   \begin{itemize}
     \item 分散式計算、分散式儲存 
     \item 2011 年時 Google 有 1M 台機器
-      \item 
-  \end{itemize}
+    \end{itemize}
     \includeimage{cluster-architecture}
 \end{frame}
 
@@ -203,17 +202,149 @@ def reduce(key, values):
 \end{minted}
 \end{frame}
 
-% \begin{frame}{MapReduce}
-%   \includeimage{map-reduce-2}
+\begin{frame}{MapReduce}
+  \includeimage{map-reduce-2}
+\end{frame}
+
+\begin{frame}{MapReduce Implementations}
+\begin{itemize}
+\item Hadoop
+  \begin{itemize}
+  \item 1999 Doug Cutting 開發搜尋引擎開放軟體 Apache Lucent, Nutch
+  \item 2004 Google 揭露搜尋引擎的作法: MapReduce + Google 分散式檔案系統
+  \item 2004 Doug Cutting 開發Hadoop 以配合 Lucent, Nutch(Yahoo 贊助)
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{MapReduce Implementations}
+  \begin{itemize}
+
+\item Spark
+  \begin{itemize}
+  \item Designed for performance
+  \item APIs for Scala, Java, and Python
+  \end{itemize}
+\item Disco: MapReduce framework for Python
+\item MapReduce-MPI: for distributed-memory parallel machines on top of standard MPI message passing
+\item Meguro: a simple Javascript Map/Reduce framework
+\item bashreduce : mapreduce in a bash script
+\item localmapreduce
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Hadoop Distributions \& Services}
+  \href{http://wiki.apache.org/hadoop/Distributions\%20and\%20Commercial\%20Support}{\beamergotobutton{Apache page of Distributions}}
+  \begin{itemize}
+\item Amazon Web Services
+\item Apache Bigtop
+\item Cascading 
+\item Cloudera
+\item Datameer
+\item Hortonworks
+\item IBM InfoSphere BigInsights
+\item MapR Technologies
+\item Syncsort
+\item Tresata 
+\item ...
+  \end{itemize}
+  
+\end{frame}
+
+
+
+\begin{frame}{Hadoop Streaming}
+\begin{itemize}
+  
+\item 使用 stdin, stdout 做資料的傳遞。類似 shell 上的 pipeline。
+\item 可用任何可在 shell 上執行的指令作為 mapper 或 reducer。亦即可用任何語言做 mapreduce 計算。
+
+\end{itemize}  
+ Mapper
+  \begin{itemize}
+  \item Input: 檔案整行作為 value（預設）
+  \item Output: 第一個 tab 以前為 key，其後為 value
+  \end{itemize}
+  Reducer
+  \begin{itemize}
+  \item Input: 第一個 tab 以前為 key，其後為 value。相同 key 的行會連續出現。
+  \item Output: 整行印出（預設）
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[containsverbatim]{實際動手跑(lmr)}
+下載
+  \begin{itemize}
+  \item \href{https://gist.github.com/eda0890d76a8364fb80f}{\emph{ngramcount.py}: https://goo.gl/wZ41MH} 
+  \item \href{https://github.com/d2207197/localmapreduce}{\emph{localmapreduce}: https://goo.gl/8UlChs}
+  \item \href{https://gist.github.com/92c52e17ecdc45d47ab1}{\emph{citeseerx.40000}: https://goo.gl/RmbfYm}
+  \end{itemize}
+Mac 環境準備
+\begin{itemize}
+\item 安裝 \href{http://brew.sh/}{Homebrew http://brew.sh/}
+\item 安裝 GNU parallel \\
+\mintinline{console}{brew install parallel}
+  
+\end{itemize}
+
+\end{frame}
+\begin{frame}[containsverbatim]{實際手動跑(lmr)}
+\begin{itemize}
+  \item 使用 pipe 測試 ngramcount.py
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\scriptsize]{console}
+$ head -100 citeseerx.40000 | ./ngramcount.py -m | \
+> sort -k1,1 -t$'\t' | ./ngramcount.py -r  | less
+\end{minted}
+\item 使用 lmr(localmapreduce) 分散執行
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\scriptsize]{console}
+$ pv citeseerx.40000 |  \
+> lmr 300k 20 './ngramcount.py -m' './ngramcount.py -r' out
+$ ls out
+reducer-00  reducer-02  reducer-04  reducer-06  reducer-08  reducer-10  reducer-12  reducer-14  reducer-16  reducer-18
+reducer-01  reducer-03  reducer-05  reducer-07  reducer-09  reducer-11  reducer-13  reducer-15  reducer-17  reducer-19
+$ less out/*
+\end{minted}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks,t]{Ngram Count}
+\inputminted[mathescape,
+               linenos,
+               numbersep=5pt,
+               fontsize=\scriptsize,
+               frame=lines,
+               framesep=2mm]{python}{ngramcount.py}
+
+\end{frame}
+
+
+\begin{frame}{修改練習}
+  修改 ngramcount.py
+  \begin{itemize}
+  \item 只產生 1-2grams
+  \item 只保留 count > 5 的 n-grams
+  \end{itemize}
+
+\end{frame}
+
+% \begin{frame}{Language Model}
+%   \begin{align*}
+%     N &= \text{ \# of words in doc}\\
+%     L &= \text{\# of lines in doc}\\
+%     P(w) &= \frac{C(w)}{N}\\
+%     P(w, w') &= \frac{C(w, w')}{N-L}\\
+%     P(w|w') &= \frac{P(w, w')}{P(w)} = \frac{C(w, w')\cdot N}{C(w) \cdot (N-L)}
+%   \end{align*}
 % \end{frame}
 
-
-\begin{frame}{目標}
+\begin{frame}{練習：語言搜尋引擎}
   \begin{itemize}
   \item 建立一搜尋引擎用於搜尋英文詞語用法。
   \item 可輔助英語學習與文章寫作。
   \end{itemize}
-
   \begin{block}{搜尋例子}
     \begin{itemize}
     \item \lstinline|adj. beach|: 即代表搜尋 beach 前面出現過的形容詞。
@@ -258,7 +389,7 @@ def reduce(key, values):
   \end{block}
 \end{frame}
 
-\begin{frame}{Lab 12}
+\begin{frame}{語言搜尋引擎}
   \begin{itemize}
   \item 目標：完成語法第一項 \lstinline/_/
     \begin{itemize}
@@ -294,7 +425,7 @@ def reduce(key, values):
 % \end{block}
 
 \end{frame}
-\begin{frame}[plain,shrink=5]{Lab 12 - 輸出}
+\begin{frame}[plain,shrink=5]{語言搜尋引擎 - 輸出}
   \begin{itemize}
   \item key: 所有會有結果的 query
   \item value: 符合 query 的前 100 名 ngram 與 count。
@@ -324,7 +455,7 @@ def reduce(key, values):
   \end{block}
 \end{frame}
 
-\begin{frame}{隨堂測驗}
+\begin{frame}{隨堂練習}
 目標
   \begin{itemize}
   \item 依 MapReduce 架構，設計每階段 mapper, reduce 的輸入輸出來完成 Lab 12
@@ -383,7 +514,7 @@ def reduce(key, values):
   \end{block}  
 \end{frame}
 
-\begin{frame}[plain,shrink=10]{Lab12}
+\begin{frame}[plain,shrink=10]{語言搜尋引擎}
   \begin{block}{Lab12 Mapper 範例}
     \begin{tabu} to .95\textwidth {XX}
       \hline
@@ -412,7 +543,7 @@ def reduce(key, values):
   \end{block}
 \end{frame}
 
-\begin{frame}[plain,shrink=10]{Lab12}
+\begin{frame}[plain,shrink=10]{語言搜尋引擎}
   \begin{block}{Lab12 Reducer 範例}
     \begin{tabu} to .95\textwidth {X[1.5]X[0.5]X}
       \hline
@@ -478,17 +609,6 @@ d.close()
 \end{minted}
 Google ``python shelve'' for official documents
 \end{frame}  
-
-
-\begin{frame}[allowframebreaks,t]{Ngram Count}
-\inputminted[mathescape,
-               linenos,
-               numbersep=5pt,
-               fontsize=\scriptsize,
-               frame=lines,
-               framesep=2mm]{python}{ngramcount.py}
-
-\end{frame}
 
 \end{document}
 
